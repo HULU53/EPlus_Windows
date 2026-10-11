@@ -1,0 +1,9 @@
+node_modules/
+out/
+/re*/
+.builder-cache/
+.vite/
+coverage/
+*.log
+.DS_Store
+

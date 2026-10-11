@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: light;
+  font-family:
+    "Segoe UI Variable",
+    "Microsoft YaHei UI",
+    "PingFang SC",
+    sans-serif;
+  background: #f4f5f3;
+  color: #1d2523;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    background: #141817;
+    color: #edf3f0;
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  background: #141817;
+  color: #edf3f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #0f8f7a;
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 8px;
+  background: color-mix(in srgb, currentColor 22%, transparent);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-surface {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(15, 143, 122, 0.08), transparent 28rem),
+    #f4f5f3;
+}
+
+:root[data-theme="dark"] .app-surface {
+  background:
+    radial-gradient(circle at 88% 0%, rgba(31, 177, 151, 0.08), transparent 30rem),
+    #141817;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .app-surface {
+    background:
+      radial-gradient(circle at 88% 0%, rgba(31, 177, 151, 0.08), transparent 30rem),
+      #141817;
+  }
+}
+
+.panel {
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, canvas 92%, transparent);
+}
+
+.muted {
+  color: color-mix(in srgb, currentColor 58%, transparent);
+}
+
+.hairline {
+  border-color: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.subtle-grid {
+  background-image:
+    linear-gradient(color-mix(in srgb, currentColor 4%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, currentColor 4%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
