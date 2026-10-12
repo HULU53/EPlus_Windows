@@ -79,7 +79,8 @@ const api: EtsApiBridge = {
   },
   system: {
     pickFfmpeg: () => ipcRenderer.invoke(IPC.systemPickFfmpeg),
-    openPath: (path: string) => ipcRenderer.invoke(IPC.systemOpenPath, path)
+    openPath: (path: string) => ipcRenderer.invoke(IPC.systemOpenPath, path),
+    openExternal: (url: string) => ipcRenderer.invoke(IPC.systemOpenExternal, url)
   }
 }
 

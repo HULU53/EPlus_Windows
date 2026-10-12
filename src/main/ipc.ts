@@ -596,6 +596,12 @@ export function registerIpc(context: IpcContext): void {
   handle(IPC.systemOpenPath, async (_event, path: string) => {
     await shell.openPath(path)
   })
+  handle(IPC.systemOpenExternal, async (_event, url: string) => {
+    if (!/^https?:\/\//i.test(url)) {
+      throw new Error('仅允许打开 HTTP 或 HTTPS 链接')
+    }
+    await shell.openExternal(url)
+  })
 
 }
 

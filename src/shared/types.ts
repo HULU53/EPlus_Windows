@@ -351,5 +351,6 @@ export interface EtsApiBridge {
   system: {
     pickFfmpeg(): Promise<string | null>
     openPath(path: string): Promise<void>
+    openExternal(url: string): Promise<void>
   }
 }

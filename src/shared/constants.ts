@@ -53,6 +53,7 @@ export const IPC = {
   diagnosticsExport: 'diagnostics:export',
   diagnosticsLogPath: 'diagnostics:logPath',
   systemPickFfmpeg: 'system:pickFfmpeg',
-  systemOpenPath: 'system:openPath'
+  systemOpenPath: 'system:openPath',
+  systemOpenExternal: 'system:openExternal'
 } as const
 

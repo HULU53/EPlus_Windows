@@ -175,6 +175,21 @@ export function SettingsPage() {
             导出诊断 JSON
           </button>
           <div className="mt-5 border-t hairline pt-4">
+            <div className="text-[10px] uppercase tracking-wide muted">关于</div>
+            <button
+              type="button"
+              onClick={(event) => {
+                if (event.ctrlKey && event.button === 0) {
+                  void window.etsApi.system.openExternal('https://github.com/HULU53/')
+                }
+              }}
+              className="mt-2 text-xs font-semibold text-[#0f8f7a] underline-offset-2 hover:underline"
+              aria-label="作者:HULU53@Github"
+            >
+              作者:HULU53@Github
+            </button>
+          </div>
+          <div className="mt-5 border-t hairline pt-4">
             <div className="text-[10px] uppercase tracking-wide muted">并发限制</div>
             <select
               value={settings.maxDownloads}
