@@ -273,6 +273,7 @@ export class UploadService {
         context,
         score: totalScore.toFixed(1),
         scoreDetail: scoreDataToJson(scoreDetail),
+        correct: totalScore > 0 ? 1 : 0,
         choose: selectedAnswer
       })
       this.tasks.update(task.id, {

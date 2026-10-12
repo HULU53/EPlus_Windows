@@ -10,7 +10,7 @@ import type {
   TaskJob
 } from '../../shared/types'
 
-export type Page = 'overview' | 'account' | 'homework' | 'tasks' | 'settings'
+export type Page = 'overview' | 'account' | 'homework' | 'ranking' | 'tasks' | 'settings'
 
 interface AppState {
   ready: boolean

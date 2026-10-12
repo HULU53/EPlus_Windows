@@ -76,4 +76,22 @@ describe('parseScoreXml', () => {
     expect(normalized.integrityScore).toBe('0.0')
     expect(normalized.standardScore).toBe('4.5')
   })
+
+  it('preserves custom overflow scores with decimal precision', () => {
+    const normalized = normalizeInternalScore({
+      totalScore: '0.416667',
+      choose: '',
+      fluencyScore: '0',
+      accuracyScore: '0',
+      integrityScore: '0',
+      standardScore: '0',
+      category: 'simple_expression',
+      repeatMode: '0',
+      version: '7.0.71.2569(2569)',
+      rateScale: 0,
+      source: 'manual',
+      allowOverflow: true
+    })
+    expect(normalized.totalScore).toBe('0.416667')
+  })
 })

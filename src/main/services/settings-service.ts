@@ -4,14 +4,16 @@ import type { AppSettings } from '@shared/types'
 import { JsonStore } from './json-store'
 
 const DEFAULT_SETTINGS: AppSettings = {
+  settingsVersion: 1,
   theme: 'system',
   dryRun: true,
   ffmpegPath: 'ffmpeg',
   maxDownloads: 2,
   keepOssObjectsInDryRun: true,
   logRetentionDays: 14,
-  loggingEnabled: true,
-  logLevel: 'debug'
+  loggingEnabled: false,
+  logLevel: 'debug',
+  experimentalCustomScoreEnabled: false
 }
 
 export class SettingsService {
@@ -21,10 +23,18 @@ export class SettingsService {
   )
 
   get(): AppSettings {
-    return {
-      ...DEFAULT_SETTINGS,
-      ...this.store.read()
+    const stored = this.store.read()
+    if (!stored.settingsVersion) {
+      const migrated: AppSettings = {
+        ...DEFAULT_SETTINGS,
+        ...stored,
+        settingsVersion: 1,
+        loggingEnabled: false
+      }
+      this.store.write(migrated)
+      return migrated
     }
+    return { ...DEFAULT_SETTINGS, ...stored }
   }
 
   update(patch: Partial<AppSettings>): AppSettings {

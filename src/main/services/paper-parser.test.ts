@@ -82,4 +82,50 @@ describe('parseContentJson', () => {
     expect(section.questions[0].order).toBe(14)
     expect(section.questions[0].uploadContext?.entityId).toBe('618355')
   })
+
+  it('uses package-local order for business context but global order for display', () => {
+    const choice = parseContentJson(
+      JSON.stringify({
+        structure_type: 'collector.choose',
+        info: {
+          stid: '618284',
+          xtlist: [
+            {
+              xt_xh: '1',
+              xt_nr: 'Q3',
+              answer: 'A',
+              xxlist: [{ xx_mc: 'A', xx_nr: 'A' }]
+            },
+            {
+              xt_xh: '2',
+              xt_nr: 'Q4',
+              answer: 'B',
+              xxlist: [{ xx_mc: 'B', xx_nr: 'B' }]
+            }
+          ]
+        }
+      }),
+      'h1',
+      'second-choice.zip',
+      '听后选择',
+      { orderOffset: 2 }
+    )
+    expect(choice.questions[0].order).toBe(3)
+    expect(choice.questions[0].uploadContext?.order).toBe('1')
+    expect(choice.questions[1].order).toBe(4)
+    expect(choice.questions[1].uploadContext?.order).toBe('2')
+
+    const role = parseContentJson(
+      JSON.stringify({
+        structure_type: 'collector.role',
+        info: { stid: '618288', question: [{ xh: '1', ask: 'Q4', std: [{ value: 'A' }] }] }
+      }),
+      'h1',
+      'role.zip',
+      '听后回答',
+      { orderOffset: 3 }
+    )
+    expect(role.questions[0].order).toBe(4)
+    expect(role.questions[0].uploadContext?.order).toBe('1')
+  })
 })

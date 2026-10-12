@@ -47,6 +47,8 @@ const api: EtsApiBridge = {
       ipcRenderer.invoke(IPC.paperGenerateFullScoreXml, paperId, questionId),
     applyFullScoreTemplate: (paperId: string) =>
       ipcRenderer.invoke(IPC.paperApplyFullScoreTemplate, paperId),
+    applyCustomScoreTemplate: (paperId: string, totalScore: number) =>
+      ipcRenderer.invoke(IPC.paperApplyCustomScoreTemplate, paperId, totalScore),
     submitAll: (paperId: string, confirmRealSubmit: boolean) =>
       ipcRenderer.invoke(IPC.paperSubmitAll, paperId, confirmRealSubmit)
   },
@@ -63,6 +65,9 @@ const api: EtsApiBridge = {
       ipcRenderer.on(IPC.tasksEvent, listener)
       return () => ipcRenderer.removeListener(IPC.tasksEvent, listener)
     }
+  },
+  ranking: {
+    get: (homeworkId: string) => ipcRenderer.invoke(IPC.rankingGet, homeworkId)
   },
   settings: {
     get: () => ipcRenderer.invoke(IPC.settingsGet),

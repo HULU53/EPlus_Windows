@@ -29,7 +29,7 @@ const SENSITIVE_KEY =
   /(password|passwd|token|authorization|cookie|secret|securityToken|accessKeySecret|suc_user_token)/i
 
 export function getLogFilePath(): string {
-  return join(app.getPath('temp'), 'Ets100Destop', 'Debug.txt')
+  return join(app.getPath('temp'), 'E+Desk', 'Debug.txt')
 }
 
 export function configureLogger(config: { enabled: boolean; level: LogLevel }): void {

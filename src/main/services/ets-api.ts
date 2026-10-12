@@ -26,6 +26,7 @@ import type {
   HomeworkStatus,
   OssUploadConfig,
   ProtocolMode,
+  RankingEntry,
   UploadContext
 } from '@shared/types'
 import { buildEtsEnvelope, parseEtsResponse, assertEtsSuccess } from './ets-envelope'
@@ -392,6 +393,7 @@ export class EtsApiClient {
     context: UploadContext
     score: string
     scoreDetail: string
+    correct: number
     choose: string
   }): Promise<Record<string, unknown>> {
     const sn = createRequestSn()
@@ -406,7 +408,7 @@ export class EtsApiClient {
         entity_id: params.context.entityId,
         order: params.context.order,
         score: params.score,
-        correct: 0,
+        correct: params.correct,
         auto_submit: 1,
         client_time: formatLocalDateTime(),
         version: 2,
@@ -431,6 +433,43 @@ export class EtsApiClient {
       }
     )
     return response.body ?? {}
+  }
+
+  async getHomeworkRanking(token: string, homeworkId: string): Promise<RankingEntry[]> {
+    logInfo('ETS', '获取作业排行榜', { homeworkId })
+    const response = await fetch(`${API_BASE_URL}/point-service/homework/rank/list`, {
+      method: 'POST',
+      headers: {
+        Host: 'api.ets100.com',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'User-Agent': 'libcurl-agent/1.0',
+        Accept: '*/*'
+      },
+      body: new URLSearchParams({
+        homework_id: homeworkId,
+        token,
+        size: '100'
+      }).toString()
+    })
+    if (!response.ok) {
+      throw new Error(`排行榜请求失败 HTTP ${response.status}`)
+    }
+    const json = (await response.json()) as {
+      code?: number | string
+      msg?: string
+      data?: Array<Record<string, unknown>>
+    }
+    assertEtsSuccess(json)
+    return (json.data ?? []).map((item) => ({
+      rank: item.rank === undefined ? undefined : Number(item.rank),
+      name: String(item.name ?? ''),
+      score: Number(item.score ?? 0),
+      accountId:
+        item.account_id === undefined ? undefined : Number(item.account_id),
+      userId: item.user_id === undefined ? undefined : Number(item.user_id),
+      finishTime:
+        item.finish_time === undefined ? undefined : String(item.finish_time)
+    }))
   }
 
   async downloadFile(

@@ -1,4 +1,4 @@
-# ETS100 Desk
+# E+Desk
 
 Windows desktop client for ETS100 account login, homework review, paper parsing,
 per-question recording/XML attachment, OSS upload, and business synchronization.

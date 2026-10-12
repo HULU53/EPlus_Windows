@@ -15,8 +15,10 @@ export function PaperPage() {
   const closePaper = useAppStore((state) => state.closePaper)
   const settings = useAppStore((state) => state.settings)
   const [templateLoading, setTemplateLoading] = useState(false)
+  const [customLoading, setCustomLoading] = useState(false)
   const [submitLoading, setSubmitLoading] = useState(false)
   const [notice, setNotice] = useState<string | null>(null)
+  const [customScore, setCustomScore] = useState('40')
 
   if (!paper) return null
   const questionCount = paper.sections.reduce(
@@ -44,6 +46,44 @@ export function PaperPage() {
       useAppStore.getState().setError(error instanceof Error ? error.message : String(error))
     } finally {
       setTemplateLoading(false)
+    }
+  }
+
+  const customScoreNumber = Number(customScore)
+  const customScoreValid =
+    /^\d+$/.test(customScore) &&
+    Number.isInteger(customScoreNumber) &&
+    customScoreNumber >= 15 &&
+    customScoreNumber <= 2_147_483_647
+
+  const applyCustomTemplate = async () => {
+    if (!customScoreValid) {
+      useAppStore.getState().setError('自定义总分必须是 15 到 2147483647 之间的整数')
+      return
+    }
+    if (
+      !window.confirm(
+        `将按自定义总分 ${customScoreNumber} 分重算三部分 XML，并覆盖现有附件。继续吗？`
+      )
+    ) {
+      return
+    }
+    setCustomLoading(true)
+    setNotice(null)
+    try {
+      const result = await window.etsApi.paper.applyCustomScoreTemplate(
+        paper.id,
+        customScoreNumber
+      )
+      useAppStore.setState({ paper: result.paper })
+      setNotice(
+        `已生成自定义得分模板：听后回答 ${result.listeningAnswerExternal} 分，` +
+          `听后转述 ${result.retellExternal} 分，短文朗读 ${result.readingExternal} 分。`
+      )
+    } catch (error) {
+      useAppStore.getState().setError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setCustomLoading(false)
     }
   }
 
@@ -93,6 +133,32 @@ export function PaperPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {settings?.experimentalCustomScoreEnabled && (
+            <div className="flex items-center rounded-lg border hairline p-1">
+              <input
+                value={customScore}
+                onChange={(event) =>
+                  setCustomScore(event.target.value.replace(/\D/g, '').slice(0, 10))
+                }
+                inputMode="numeric"
+                className="w-20 bg-transparent px-2 py-1 text-center font-mono text-[11px] outline-none"
+                aria-label="自定义总分"
+              />
+              <button
+                type="button"
+                disabled={!customScoreValid || customLoading}
+                onClick={() => void applyCustomTemplate()}
+                className="flex items-center gap-2 rounded-md px-2 py-1 text-[11px] font-medium hover:bg-black/5 disabled:opacity-40 dark:hover:bg-white/5"
+              >
+                {customLoading ? (
+                  <LoaderCircle size={14} className="animate-spin" />
+                ) : (
+                  <Wand2 size={14} />
+                )}
+                提交 {customScore || '__'} 分的成绩
+              </button>
+            </div>
+          )}
           <button
             type="button"
             disabled={templateLoading}

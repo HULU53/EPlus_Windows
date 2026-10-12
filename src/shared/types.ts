@@ -102,6 +102,7 @@ export interface ScoreData {
   version: string
   rateScale: number
   source: 'xml' | 'manual' | 'default'
+  allowOverflow?: boolean
 }
 
 export interface UploadContext {
@@ -200,6 +201,7 @@ export interface TaskJob {
 }
 
 export interface AppSettings {
+  settingsVersion?: number
   theme: 'system' | 'light' | 'dark'
   dryRun: boolean
   ffmpegPath: string
@@ -208,6 +210,7 @@ export interface AppSettings {
   logRetentionDays: number
   loggingEnabled: boolean
   logLevel: LogLevel
+  experimentalCustomScoreEnabled: boolean
 }
 
 export interface OssUploadConfig {
@@ -251,6 +254,13 @@ export interface ApplyTemplateResult {
   paper: Paper
   templated: number
   skipped: number
+  choiceAnswered?: number
+}
+
+export interface CustomScoreTemplateResult extends ApplyTemplateResult {
+  listeningAnswerExternal: number
+  retellExternal: number
+  readingExternal: number
 }
 
 export interface SubmitAllResult {
@@ -258,6 +268,15 @@ export interface SubmitAllResult {
   submitted: number
   skipped: number
   failed: string[]
+}
+
+export interface RankingEntry {
+  rank?: number
+  name: string
+  score: number
+  accountId?: number
+  userId?: number
+  finishTime?: string
 }
 
 export interface ImportTokenRequest {
@@ -302,6 +321,10 @@ export interface EtsApiBridge {
     setChoiceAnswer(paperId: string, questionId: string, answer: string): Promise<void>
     generateFullScoreXml(paperId: string, questionId: string): Promise<GeneratedXmlResult>
     applyFullScoreTemplate(paperId: string): Promise<ApplyTemplateResult>
+    applyCustomScoreTemplate(
+      paperId: string,
+      totalScore: number
+    ): Promise<CustomScoreTemplateResult>
     submitAll(paperId: string, confirmRealSubmit: boolean): Promise<SubmitAllResult>
   }
   upload: {
@@ -317,6 +340,9 @@ export interface EtsApiBridge {
   settings: {
     get(): Promise<AppSettings>
     update(patch: Partial<AppSettings>): Promise<AppSettings>
+  }
+  ranking: {
+    get(homeworkId: string): Promise<RankingEntry[]>
   }
   diagnostics: {
     export(): Promise<string>

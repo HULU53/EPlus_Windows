@@ -95,7 +95,9 @@ export function normalizeInternalScore(score: ScoreData): ScoreData {
   const clamp = (value: string): string => {
     const number = Number(value)
     if (!Number.isFinite(number)) return '0.0'
-    return Math.min(Math.max(number, 0), 5).toFixed(1)
+    const lowerBounded = Math.max(number, 0)
+    const bounded = score.allowOverflow ? lowerBounded : Math.min(lowerBounded, 5)
+    return bounded.toFixed(score.allowOverflow ? 6 : 1)
   }
   return {
     ...score,

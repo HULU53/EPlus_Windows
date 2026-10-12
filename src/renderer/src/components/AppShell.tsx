@@ -6,6 +6,7 @@ import {
   CloudDownload,
   FileText,
   LogOut,
+  Trophy,
   Settings,
   ShieldCheck,
   UserRound
@@ -17,6 +18,7 @@ import { AccountPage } from '../pages/AccountPage'
 import { HomeworkPage } from '../pages/HomeworkPage'
 import { OverviewPage } from '../pages/OverviewPage'
 import { PaperPage } from '../pages/PaperPage'
+import { RankingPage } from '../pages/RankingPage'
 import { SettingsPage } from '../pages/SettingsPage'
 import { TasksPage } from '../pages/TasksPage'
 import { TaskDrawer } from './TaskDrawer'
@@ -25,6 +27,7 @@ const NAV: Array<{ page: Page; label: string; icon: ReactNode }> = [
   { page: 'overview', label: '总览', icon: <Activity size={18} /> },
   { page: 'account', label: '账号', icon: <UserRound size={18} /> },
   { page: 'homework', label: '作业', icon: <BookOpen size={18} /> },
+  { page: 'ranking', label: '排行', icon: <Trophy size={18} /> },
   { page: 'tasks', label: '任务', icon: <CloudDownload size={18} /> },
   { page: 'settings', label: '设置', icon: <Settings size={18} /> }
 ]
@@ -48,6 +51,8 @@ export function AppShell() {
       <AccountPage />
     ) : page === 'homework' ? (
       <HomeworkPage />
+    ) : page === 'ranking' ? (
+      <RankingPage />
     ) : page === 'tasks' ? (
       <TasksPage />
     ) : (
@@ -121,7 +126,7 @@ export function AppShell() {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-[58px] shrink-0 items-center justify-between border-b hairline px-5">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="text-[13px] font-semibold tracking-tight">ETS100 Desk</div>
+            <div className="text-[13px] font-semibold tracking-tight">E+Desk</div>
             <ChevronRight size={14} className="muted" />
             <div className="truncate text-xs muted">
               {paper ? `试卷 · ${paper.title}` : NAV.find((item) => item.page === page)?.label}

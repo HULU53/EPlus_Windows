@@ -14,7 +14,7 @@ export const ETS_DEFAULT_REBIND_VERSION = '2'
 export const ETS_DEFAULT_REBIND_DEVICE_NAME = '1337'
 export const ETS_DEFAULT_LOCAL_IP = '127.0.0.1'
 export const ETS_EVALUATE_RESOURCE_ID = '55'
-export const PAPER_CACHE_VERSION = 3
+export const PAPER_CACHE_VERSION = 4
 export const ETS_CAPTURED_APP_VERSION = '7.0.71.2569(2569)'
 export const ETS_CAPTURED_SYSTEM = '2'
 
@@ -39,7 +39,9 @@ export const IPC = {
   paperSetChoiceAnswer: 'paper:setChoiceAnswer',
   paperGenerateFullScoreXml: 'paper:generateFullScoreXml',
   paperApplyFullScoreTemplate: 'paper:applyFullScoreTemplate',
+  paperApplyCustomScoreTemplate: 'paper:applyCustomScoreTemplate',
   paperSubmitAll: 'paper:submitAll',
+  rankingGet: 'ranking:get',
   uploadValidate: 'upload:validate',
   uploadSubmit: 'upload:submit',
   uploadRetry: 'upload:retry',

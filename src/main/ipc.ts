@@ -10,6 +10,7 @@ import type {
   HomeworkStatus,
   ImportTokenRequest,
   PasswordLoginRequest,
+  Question,
   ScoreData,
   TaskEvent,
   UploadContext,
@@ -56,6 +57,24 @@ function broadcastTasks(tasks: TaskManager): void {
     }
   }
   tasks.onEvent(listener)
+}
+
+function customInternalScore(
+  question: Question,
+  retellExternal: number,
+  readingExternal: number
+): number {
+  const part = question.partName || question.typeName || ''
+  if (/听后回答/.test(part) || question.structureType === 'collector.role') {
+    return 5 / 12
+  }
+  if (/听后转述/.test(part) || question.structureType === 'collector.picture') {
+    return retellExternal / 2
+  }
+  if (/短文朗读/.test(part) || question.structureType === 'collector.read') {
+    return (readingExternal * 5) / 9
+  }
+  return 5
 }
 
 export function registerIpc(context: IpcContext): void {
@@ -131,6 +150,10 @@ export function registerIpc(context: IpcContext): void {
   handle(IPC.homeworkList, (_event, status: HomeworkStatus) =>
     listHomework(status)
   )
+  handle(IPC.rankingGet, (_event, homeworkId: string) => {
+    const session = requireSession(context.auth)
+    return context.api.getHomeworkRanking(session.token, homeworkId)
+  })
   handle(
     IPC.homeworkOpen,
     async (_event, homework: HomeworkInfo, baseUrl: string) =>
@@ -254,10 +277,18 @@ export function registerIpc(context: IpcContext): void {
     const silentPath = await context.audio.generateSilentMp3(ffmpegPath)
     let templated = 0
     let skipped = 0
+    let choiceAnswered = 0
 
     for (const section of paper.sections) {
       for (const question of section.questions) {
         if (question.structureType === 'collector.choose') {
+          if (question.correctAnswer) {
+            context.papers.updateQuestion(paperId, question.id, (current) => ({
+              ...current,
+              selectedAnswer: current.correctAnswer
+            }))
+            choiceAnswered += 1
+          }
           skipped += 1
           continue
         }
@@ -313,9 +344,117 @@ export function registerIpc(context: IpcContext): void {
     return {
       paper: context.papers.getCached(paperId),
       templated,
-      skipped
+      skipped,
+      choiceAnswered
     }
   })
+  handle(
+    IPC.paperApplyCustomScoreTemplate,
+    async (_event, paperId: string, totalScore: number) => {
+      const settings = context.settings.get()
+      if (!settings.experimentalCustomScoreEnabled) {
+        throw new Error('请先在设置中开启实验性自定义得分')
+      }
+      if (
+        !Number.isInteger(totalScore) ||
+        totalScore < 15 ||
+        totalScore > 2_147_483_647
+      ) {
+        throw new Error('自定义总分必须是 15 到 2147483647 之间的整数')
+      }
+      const paper = context.papers.getCached(paperId)
+      if (!paper) throw new Error('试卷缓存不存在')
+
+      const retellExternal = (totalScore - 15) / 2
+      const readingExternal = (totalScore - 15) / 2
+      const ffmpegPath = settings.ffmpegPath
+      const silentPath = await context.audio.generateSilentMp3(ffmpegPath)
+      let templated = 0
+      let skipped = 0
+      let choiceAnswered = 0
+
+      for (const section of paper.sections) {
+        for (const question of section.questions) {
+          if (question.structureType === 'collector.choose') {
+            if (question.correctAnswer) {
+              context.papers.updateQuestion(paperId, question.id, (current) => ({
+                ...current,
+                selectedAnswer: current.correctAnswer
+              }))
+              choiceAnswered += 1
+            }
+            skipped += 1
+            continue
+          }
+
+          const internalScore = customInternalScore(
+            question,
+            retellExternal,
+            readingExternal
+          )
+          const preset = generateFullScoreXml(question, internalScore, true)
+          const xmlAttachment = context.attachments.saveBuffer({
+            kind: 'xml',
+            fileName: `custom-score-${preset.category}.xml`,
+            mimeType: 'application/xml',
+            bytes: Buffer.from(preset.xml, 'utf8'),
+            source: 'generated'
+          })
+          const audioAttachment = context.attachments.saveExistingFile({
+            kind: 'audio',
+            fileName: 'silence-1s.mp3',
+            mimeType: 'audio/mpeg',
+            sourcePath: silentPath,
+            source: 'generated'
+          })
+          context.papers.updateQuestion(paperId, question.id, (current) => {
+            for (const item of current.attachments) {
+              if (item.kind === 'audio' || item.kind === 'xml') {
+                context.attachments.remove(item)
+              }
+            }
+            return {
+              ...current,
+              attachments: [audioAttachment, xmlAttachment],
+              scoreOverride: preset.score,
+              uploadContext: {
+                homeworkId: current.uploadContext?.homeworkId || paper.homeworkId,
+                resourceId:
+                  current.uploadContext?.resourceId || paper.resourceId || '55',
+                setId: current.uploadContext?.setId || paper.setId || '',
+                entityId: current.uploadContext?.entityId || '',
+                order: current.uploadContext?.order || String(current.order),
+                serialId: current.uploadContext?.serialId || '0',
+                useTime: current.uploadContext?.useTime || 0,
+                correct: current.uploadContext?.correct ?? 0,
+                markTraceId: current.uploadContext?.markTraceId || '',
+                score: preset.score.totalScore
+              },
+              uploadState: undefined
+            }
+          })
+          templated += 1
+        }
+      }
+      logInfo('Paper', '自定义得分模板完成', {
+        paperId,
+        totalScore,
+        retellExternal,
+        readingExternal,
+        templated,
+        skipped
+      })
+      return {
+        paper: context.papers.getCached(paperId),
+        templated,
+        skipped,
+        choiceAnswered,
+        listeningAnswerExternal: 6,
+        retellExternal,
+        readingExternal
+      }
+    }
+  )
   handle(
     IPC.paperSubmitAll,
     async (_event, paperId: string, confirmRealSubmit: boolean) => {

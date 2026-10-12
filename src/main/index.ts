@@ -1,5 +1,5 @@
 import { app, BrowserWindow, shell } from 'electron'
-import { writeFileSync } from 'node:fs'
+import { cpSync, existsSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { registerIpc, type IpcContext } from './ipc'
 import { AudioService } from './services/audio-service'
@@ -14,6 +14,22 @@ import { UploadService } from './services/upload-service'
 import { configureLogger, logError, logInfo } from './services/logger'
 
 let mainWindow: BrowserWindow | null = null
+const APP_NAME = 'E+Desk'
+
+app.setName(APP_NAME)
+
+function migrateOldUserData(): void {
+  try {
+    const oldUserData = join(app.getPath('appData'), 'ets100-desktop')
+    const currentUserData = app.getPath('userData')
+    if (existsSync(oldUserData) && !existsSync(currentUserData)) {
+      cpSync(oldUserData, currentUserData, { recursive: true })
+      console.info(`[Migration] Copied user data to ${currentUserData}`)
+    }
+  } catch (error) {
+    console.warn('[Migration] Failed to migrate old user data', error)
+  }
+}
 
 function createMainWindow(): BrowserWindow {
   logInfo('App', '创建主窗口')
@@ -24,7 +40,7 @@ function createMainWindow(): BrowserWindow {
     minHeight: 720,
     show: false,
     autoHideMenuBar: true,
-    title: 'ETS100 Desk',
+    title: 'E+Desk',
     backgroundColor: '#f4f5f3',
     webPreferences: {
       preload: join(import.meta.dirname, '../preload/index.js'),
@@ -69,7 +85,8 @@ function createMainWindow(): BrowserWindow {
 }
 
 app.whenReady().then(() => {
-  app.setAppUserModelId('cn.ets100.desktop')
+  app.setAppUserModelId('com.hulu.eplusdesk')
+  migrateOldUserData()
 
   const api = new EtsApiClient()
   const settings = new SettingsService()

@@ -71,7 +71,8 @@ function questionFromRole(
   base: Omit<Question, 'id' | 'questionText' | 'answers' | 'originalText' | 'category' | 'uploadContext' | 'attachments'>,
   homeworkId: string,
   json: Record<string, unknown>,
-  contextBase: { setId?: string; resourceId?: string }
+  contextBase: { setId?: string; resourceId?: string },
+  localOrder: number
 ): Question {
   const std = Array.isArray(entry.std) ? entry.std : []
   const answers = std
@@ -79,12 +80,12 @@ function questionFromRole(
     .filter(Boolean)
   return {
     ...base,
-    id: sha1(`${homeworkId}:${base.contentUrl}:${base.order}`),
+    id: sha1(`${homeworkId}:${base.contentUrl}:${localOrder}`),
     questionText: text(entry.ask ?? entry.question ?? entry.topic),
     answers,
     originalText: text(entry.value ?? ''),
     category: text(entry.category ?? ''),
-    uploadContext: makeContext(json, homeworkId, base.order, contextBase),
+    uploadContext: makeContext(json, homeworkId, localOrder, contextBase),
     attachments: []
   }
 }
@@ -103,16 +104,19 @@ export function parseContentJson(
   const maxScore = scoreForPart(groupName)
   const orderOffset = contextBase.orderOffset ?? 0
 
-  const itemOrder = (index: number, entry?: Record<string, unknown>) => {
+  const localOrder = (index: number, entry?: Record<string, unknown>) => {
     const local = Number(entry?.xh ?? entry?.xth ?? entry?.xt_xh)
-    return orderOffset + (Number.isFinite(local) && local > 0 ? local : index + 1)
+    return Number.isFinite(local) && local > 0 ? local : index + 1
   }
+
+  const displayOrder = (index: number, entry?: Record<string, unknown>) =>
+    orderOffset + localOrder(index, entry)
 
   const base = (index: number, entry?: Record<string, unknown>) => ({
     homeworkId,
     contentUrl,
-    order: itemOrder(index, entry),
-    sectionOrder: itemOrder(index, entry),
+    order: displayOrder(index, entry),
+    sectionOrder: displayOrder(index, entry),
     sectionCaption: groupName,
     typeName: groupName,
     structureType,
@@ -134,7 +138,7 @@ export function parseContentJson(
           })
         : []
       const answer = text(entry.answer)
-      const order = itemOrder(index, entry)
+      const order = localOrder(index, entry)
       questions.push({
         ...base(index, entry),
         id: sha1(`${homeworkId}:${contentUrl}:${order}`),
@@ -154,11 +158,11 @@ export function parseContentJson(
     const list = Array.isArray(info.std) ? info.std : []
     list.forEach((raw, index) => {
       const entry = raw as Record<string, unknown>
-      const order = itemOrder(index, entry)
+      const order = localOrder(index, entry)
       questions.push({
         ...base(index, entry),
-        order,
-        sectionOrder: order,
+        order: orderOffset + order,
+        sectionOrder: orderOffset + order,
         id: sha1(`${homeworkId}:${contentUrl}:${order}`),
         questionText: text(entry.xth ?? `第 ${order} 题`),
         answers: [text(entry.value)].filter(Boolean),
@@ -182,7 +186,8 @@ export function parseContentJson(
           base(index, raw as Record<string, unknown>),
           homeworkId,
           json,
-          contextBase
+          contextBase,
+          localOrder(index, raw as Record<string, unknown>)
         )
       )
     })
@@ -191,11 +196,11 @@ export function parseContentJson(
 
   if (structureType === 'collector.picture') {
     const list = Array.isArray(info.std) ? info.std : []
-    const order = itemOrder(0, {})
+    const order = 1
     questions.push({
       ...base(0),
-      order,
-      sectionOrder: order,
+      order: orderOffset + order,
+      sectionOrder: orderOffset + order,
       id: sha1(`${homeworkId}:${contentUrl}:${order}`),
       questionText: text(info.topic ?? groupName),
       answers: list.map((entry) => text((entry as Record<string, unknown>).value)).filter(Boolean),
@@ -207,11 +212,11 @@ export function parseContentJson(
   }
 
   const readText = text(info.value ?? info.std ?? '')
-  const readOrder = itemOrder(0, {})
+  const readOrder = 1
   questions.push({
     ...base(0),
-    order: readOrder,
-    sectionOrder: readOrder,
+    order: orderOffset + readOrder,
+    sectionOrder: orderOffset + readOrder,
     id: sha1(`${homeworkId}:${contentUrl}:read`),
     questionText: groupName,
     answers: [],

@@ -1,5 +1,5 @@
 {
-  "name": "ets100-desktop",
+  "name": "e-plus-desk",
   "version": "0.1.0",
   "description": "Windows desktop client for ETS100 homework review and evaluation upload",
   "main": "./out/main/index.js",
@@ -46,8 +46,8 @@
     "vitest": "latest"
   },
   "build": {
-    "appId": "cn.ets100.desktop",
-    "productName": "ETS100 Desk",
+    "appId": "com.hulu.eplusdesk",
+    "productName": "E+Desk",
     "directories": {
       "output": "release"
     },

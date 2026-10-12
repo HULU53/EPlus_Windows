@@ -103,7 +103,7 @@ export function SettingsPage() {
 
           <SectionTitle
             title="日志记录"
-            description="默认写入 %temp%\\Ets100Destop\\Debug.txt，用于定位登录、网络、ZIP 和上传问题。"
+            description="默认写入 %temp%\\E+Desk\\Debug.txt，用于定位登录、网络、ZIP 和上传问题。"
           />
           <div className="space-y-3 p-4">
             <label className="flex cursor-pointer items-start gap-3 rounded-lg border hairline p-3">
@@ -190,6 +190,29 @@ export function SettingsPage() {
           </div>
         </section>
       </div>
+
+      <section className="panel mt-4 overflow-hidden">
+        <SectionTitle
+          title="实验性"
+          description="高风险功能，仅在明确理解后果时开启。"
+        />
+        <label className="flex cursor-pointer items-start gap-3 p-4">
+          <input
+            type="checkbox"
+            checked={settings.experimentalCustomScoreEnabled}
+            onChange={(event) =>
+              update({ experimentalCustomScoreEnabled: event.target.checked })
+            }
+            className="mt-0.5"
+          />
+          <div>
+            <div className="text-xs font-semibold">自定义得分</div>
+            <div className="mt-1 text-[10px] font-medium text-red-600 dark:text-red-400">
+              该选项开启后可能导致ETS账号被封禁，慎重！
+            </div>
+          </div>
+        </label>
+      </section>
     </div>
   )
 }

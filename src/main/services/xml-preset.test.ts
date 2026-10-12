@@ -26,7 +26,7 @@ describe('generateFullScoreXml', () => {
     const result = generateFullScoreXml(question({}))
     expect(result.category).toBe('simple_expression')
     expect(result.xml).toContain('total_score="5.000000"')
-    expect(result.score.totalScore).toBe('5.0')
+    expect(result.score.totalScore).toBe('5.000000')
   })
 
   it('generates a topic full-score XML', () => {
@@ -56,7 +56,7 @@ describe('generateFullScoreXml', () => {
     const topic = generateFullScoreXml(
       question({ partName: '听后转述', maxScore: 10, typeName: '听后转述' })
     )
-    expect(topic.score.totalScore).toBe('5.0')
+    expect(topic.score.totalScore).toBe('5.000000')
     expect(topic.xml).toContain('total_score="5.000000"')
 
     const reading = generateFullScoreXml(
@@ -67,7 +67,7 @@ describe('generateFullScoreXml', () => {
         typeName: '短文朗读'
       })
     )
-    expect(reading.score.totalScore).toBe('5.0')
+    expect(reading.score.totalScore).toBe('5.000000')
     expect(reading.xml).toContain('total_score="5.000000"')
   })
 
@@ -75,5 +75,16 @@ describe('generateFullScoreXml', () => {
     expect(choiceScore('A', 'A', 1.5)).toBe(1.5)
     expect(choiceScore('B', 'A', 1.5)).toBe(0)
     expect(choiceScore('', 'A', 1.5)).toBe(0)
+  })
+
+  it('allows custom internal scores above five when overflow is enabled', () => {
+    const result = generateFullScoreXml(
+      question({ structureType: 'collector.picture' }),
+      6.25,
+      true
+    )
+    expect(result.score.totalScore).toBe('6.250000')
+    expect(result.score.allowOverflow).toBe(true)
+    expect(result.xml).toContain('total_score="6.250000"')
   })
 })
